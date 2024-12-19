@@ -1,6 +1,6 @@
-#include <pipex.h>
+#include "pipex.h"
 
-void execute(char *cmd, char **env)
+void execute(char *cmd)
 {
     if(ft_strnstr(cmd, "' '", ft_strlen(cmd)))
     {
@@ -9,11 +9,10 @@ void execute(char *cmd, char **env)
 
 }
 
-int writer_child(int *pipe, char *file, char *cmd, char **env)
+void cmd2(int *pipe, char *file, char *cmd)
 {
     int pid;
     int outfile;
-
     pid = fork();
     
     if (pid == -1)
@@ -28,10 +27,10 @@ int writer_child(int *pipe, char *file, char *cmd, char **env)
         if( dup2(outfile, STDOUT_FILENO) == -1)
             exit(EXIT_FAILURE);
     }
-    execute(cmd, env);
+    execute(cmd);
 }
 
-int reader_child(int *pipe, char *file, char *cmd, char **env)
+void cmd1(int *pipe, char *file, char *cmd)
 {
     int pid;
     int infile;
@@ -50,32 +49,30 @@ int reader_child(int *pipe, char *file, char *cmd, char **env)
         if( dup2(infile, STDIN_FILENO) == -1)
             exit(EXIT_FAILURE);
     }
-    execute(cmd, env);
+    execute(cmd);
 }
 
-int main (int ac, char **av, char **env)
+int main (int ac, char **av)
 {
     int pipefd[2];
-    int child_read;
-    int child_write;
 
     if( ac == 5)
     {
         if (pipe(pipefd) == -1)
         {
-            perror("pipe");
-            exit(EXIT_FAILURE);
+            perror("");
+            return(errno);
         }
-        child_read = reader_child(pipefd, av[1], av[2], env);
-        child_write = writer_child(pipefd, av[4], av[3], env);
-        waitpid(child_read);
-        waitpid(child_write);
+        cmd1(pipefd, av[1], av[2]);
+        cmd2(pipefd, av[4], av[3]);
+        wait(NULL);
+        wait(NULL);
         clean();
     }
     else
     {
         ft_printf("wrong number of arguments\n");
-        exit(EXIT_FAILURE);
+        return(EXIT_FAILURE);
     }
     return(EXIT_SUCCESS);
 }
