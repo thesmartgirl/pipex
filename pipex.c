@@ -13,7 +13,7 @@
 void cmd2(int pipe[], char *file, char *cmd)
 {
     int outfile;
-    
+
         if (close(pipe[1]) == -1)
             exit(EXIT_FAILURE);
         if (dup2(pipe[0], STDIN_FILENO) == -1)
@@ -66,25 +66,25 @@ int main (int ac, char **av)
         ft_printf("empty argument \n");
         return(EXIT_FAILURE);
     }
-    
+
     if (pipe(pipefd) == -1)
     {
         perror("");
         return(errno);
     }
-    
+
     pid = fork();
     if (pid == -1)
         exit(EXIT_FAILURE);
     else if (pid == 0)
         cmd1(pipefd, av[1], av[2]);
-   
+
     pid = fork();
     if (pid == -1)
         exit(EXIT_FAILURE);
     else if (pid == 0)
         cmd2(pipefd, av[4], av[3]);
-    
+
     close(pipefd[0]);
     close(pipefd[1]);
     int status;
