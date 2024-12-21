@@ -14,21 +14,21 @@ void cmd2(int pipe[], char *file, char *cmd)
 {
     int outfile;
 
-        if (close(pipe[1]) == -1)
+    if (close(pipe[1]) == -1)
+      exit(EXIT_FAILURE);
+    if (dup2(pipe[0], STDIN_FILENO) == -1)
+      exit(EXIT_FAILURE);
+    close(pipe[0]);
+    outfile = open(file, O_WRONLY | O_CREAT | O_TRUNC, 0644);
+    if (outfile != -1)
+    {
+        if( dup2(outfile, STDOUT_FILENO) == -1)
             exit(EXIT_FAILURE);
-        if (dup2(pipe[0], STDIN_FILENO) == -1)
-            exit(EXIT_FAILURE);
-        close(pipe[0]);
-        outfile = open(file, O_WRONLY | O_CREAT | O_TRUNC, 0644);
-        if (outfile != -1)
-        {
-            if( dup2(outfile, STDOUT_FILENO) == -1)
-                exit(EXIT_FAILURE);
-            close(outfile);
-        }
-        char *args[] = {"grep", "h", NULL};
-        // char *env_args[] = {"PATH=/bin", (char*)0};
-        execve(ft_strjoin("/bin/", cmd), args, NULL);
+        close(outfile);
+    }
+    char *args[] = {"grep", "h", NULL};
+    // char *env_args[] = {"PATH=/bin", (char*)0};
+    execve(ft_strjoin("/bin/", cmd), args, NULL) ;
 }
 
 void cmd1(int pipe[], char *file, char *cmd)
@@ -55,6 +55,7 @@ int main (int ac, char **av)
 {
     int pipefd[2];
     int pid;
+    int status;
 
     if(ac != 5)
     {
@@ -70,24 +71,23 @@ int main (int ac, char **av)
     if (pipe(pipefd) == -1)
     {
         perror("");
-        return(errno);
+        return(-1);
     }
 
     pid = fork();
     if (pid == -1)
         exit(EXIT_FAILURE);
-    else if (pid == 0)
+    if (pid == 0)
         cmd1(pipefd, av[1], av[2]);
 
     pid = fork();
     if (pid == -1)
         exit(EXIT_FAILURE);
-    else if (pid == 0)
+    if (pid == 0)
         cmd2(pipefd, av[4], av[3]);
 
     close(pipefd[0]);
     close(pipefd[1]);
-    int status;
     wait(&status);
     wait(&status);
     // clean();
