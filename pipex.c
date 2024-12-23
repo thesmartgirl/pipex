@@ -1,11 +1,5 @@
 #include "pipex.h"
 
-void close_std(void)
-{
-    close(STDIN_FILENO);
-    close(STDOUT_FILENO);
-    close(STDERR_FILENO);
-}
 void exit_err(int err)
 {
     if (err == ENOENT)
@@ -13,17 +7,21 @@ void exit_err(int err)
     else
         exit(EXIT_FAILURE);
 }
+
 void check_cmd(char *cmd)
 {
     if (access(cmd, F_OK) == -1)
     {
         free(cmd);
-        close_std();
         exit(127);
     }
     else if(access(cmd, X_OK) == -1)
+    {
+        free(cmd);
         exit(126);
+    }
 }
+
 void cmd2(int pipe[], char *file, char *cmd)
 {
     int outfile;
@@ -42,11 +40,10 @@ void cmd2(int pipe[], char *file, char *cmd)
         cmd_path = ft_strjoin("/bin/", cmd);
         if (!cmd_path)
             exit(EXIT_FAILURE);
-        char *args[] = {cmd, "h", NULL};
+        char *args[] = {cmd, "sakjfna", NULL};
         check_cmd(cmd_path);
         execve(cmd_path, args, NULL);
     }
-    close_std();
 }
 
 void cmd1(int pipe[], char *file, char *cmd)
@@ -71,7 +68,6 @@ void cmd1(int pipe[], char *file, char *cmd)
         check_cmd(cmd_path);
         execve(cmd_path, args, NULL);
     }
-    close_std();
 }
 
 void check_args(int ac, char **av)
@@ -81,12 +77,12 @@ void check_args(int ac, char **av)
         ft_printf("wrong number of arguments\n");
         exit(EXIT_FAILURE);
     }
-    else if ((av[2][0] == '\0') | (av[3][0] == '\0'))
-    {
-        ft_printf("empty argument \n");
-        exit(EXIT_FAILURE);
-    }
+    else if ((av[2][0] == '\0'))
+        execute_cmd1 = 0;
+    else if ((av[3][0] == '\0'))
+        execute_cmd2 = 0;
 }
+
 void child1(int *pid, char **av, int pipefd[2])
 {
     *(pid) = fork();
@@ -97,6 +93,7 @@ void child1(int *pid, char **av, int pipefd[2])
     else
         close(pipefd[1]);
 }
+
 int main(int ac, char **av)
 {
     int pipefd[2];
@@ -117,7 +114,7 @@ int main(int ac, char **av)
     close(pipefd[0]);
     close(pipefd[1]);
     close_std();
-    waitpid(pid1, &status1, 0);
+    waitpid(pid1, NULL, 0);
     waitpid(pid2, &status2, 0);
     if (WIFEXITED(status2))
         return(WEXITSTATUS(status2));
