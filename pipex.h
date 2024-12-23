@@ -7,4 +7,12 @@
 #include <errno.h>
 #include <stdio.h>
 
+typedef struct s_child
+{
+  int pid;
+  int status;
+  bool execute_cmd;
+  char **cmd;
+} t_child
+
 #endif

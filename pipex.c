@@ -1,13 +1,5 @@
 #include "pipex.h"
 
-void exit_err(int err)
-{
-    if (err == ENOENT)
-        exit(127);
-    else
-        exit(EXIT_FAILURE);
-}
-
 void check_cmd(char *cmd)
 {
     if (access(cmd, F_OK) == -1)
@@ -65,57 +57,61 @@ void cmd1(int pipe[], char *file, char *cmd)
         if (!cmd_path)
             exit(EXIT_FAILURE);
         char *args[] = {"cat", "-e", NULL};
-        check_cmd(cmd_path);
+        // check_cmd(cmd_path);
         execve(cmd_path, args, NULL);
     }
 }
 
-void check_args(int ac, char **av)
+void check_args(int ac, char **av, t_child *child1, t_child *child2)
 {
+    child1->execute_cmd = 1;
+    child1->execute_cmd = 1;
     if(ac != 5)
     {
         ft_printf("wrong number of arguments\n");
         exit(EXIT_FAILURE);
     }
     else if ((av[2][0] == '\0'))
-        execute_cmd1 = 0;
+        child1->execute_cmd = 0;
     else if ((av[3][0] == '\0'))
-        execute_cmd2 = 0;
-}
-
-void child1(int *pid, char **av, int pipefd[2])
-{
-    *(pid) = fork();
-    if (*(pid) == -1)
-        exit(EXIT_FAILURE);
-    if (*(pid) == 0)
-        cmd1(pipefd, av[1], av[2]);
-    else
-        close(pipefd[1]);
+        child2->execute_cmd = 0;
 }
 
 int main(int ac, char **av)
 {
     int pipefd[2];
-    int pid1;
-    int pid2;
-    int status1 = 0;
-    int status2 = 0;
+    int status;
+    int wait_pid;
+    int pipe_status;
+    t_child child1;
+    t_child child2;
 
-    check_args(ac, av);
+    check_args(ac, av, &child1, &child2);
     if (pipe(pipefd) == -1)
         return(-1);
-    child1(&pid1, av, pipefd);
-    pid2 = fork();
-    if (pid2 == -1)
+    child1.pid = fork();
+    if (child1.pid == -1)
         exit(EXIT_FAILURE);
-    if (pid2 == 0)
+    if (child1.pid == 0)
+        cmd1(pipefd, av[4], av[3]);
+    child2.pid = fork();
+    if (child2.pid == -1)
+        exit(EXIT_FAILURE);
+    if (child2.pid == 0)
         cmd2(pipefd, av[4], av[3]);
     close(pipefd[0]);
     close(pipefd[1]);
-    close_std();
-    waitpid(pid1, NULL, 0);
-    waitpid(pid2, &status2, 0);
-    if (WIFEXITED(status2))
-        return(WEXITSTATUS(status2));
+    wait_pid = wait(&status);
+    if (wait_pid == child2.pid)
+    {
+      if (WIFEXITED(status))
+        child2.status = WEXITSTATUS(status);
+    }
+    wait_pid = wait(&status);
+    if (wait_pid == child2.pid)
+    {
+      if (WIFEXITED(status))
+        child2.status = WEXITSTATUS(status);
+    }
+    return child2.status;
 }
