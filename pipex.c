@@ -32,7 +32,7 @@ void cmd2(int pipe[], char *file, char *cmd)
         cmd_path = ft_strjoin("/bin/", cmd);
         if (!cmd_path)
             exit(EXIT_FAILURE);
-        char *args[] = {cmd, "sakjfna", NULL};
+        char *args[] = {"grep", "sakjfna", NULL};
         check_cmd(cmd_path);
         execve(cmd_path, args, NULL);
     }
@@ -92,7 +92,7 @@ int main(int ac, char **av)
     if (child1.pid == -1)
         exit(EXIT_FAILURE);
     if (child1.pid == 0)
-        cmd1(pipefd, av[4], av[3]);
+        cmd1(pipefd, av[2], av[3]);
     child2.pid = fork();
     if (child2.pid == -1)
         exit(EXIT_FAILURE);
