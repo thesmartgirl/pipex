@@ -5,6 +5,7 @@
 #include "./libft/libft.h"
 #include <sys/wait.h>
 #include <stdio.h>
+#include <stdbool.h>
 
 typedef struct s_child
 {
@@ -12,6 +13,6 @@ typedef struct s_child
   int status;
   bool execute_cmd;
   char **cmd;
-} t_child
+} t_child;
 
 #endif

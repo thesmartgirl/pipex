@@ -82,7 +82,6 @@ int main(int ac, char **av)
     int pipefd[2];
     int status;
     int wait_pid;
-    int pipe_status;
     t_child child1;
     t_child child2;
 
