@@ -4,7 +4,6 @@
 #include <fcntl.h>
 #include "./libft/libft.h"
 #include <sys/wait.h>
-#include <errno.h>
 #include <stdio.h>
 
 typedef struct s_child
