@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   pipex.c                                            :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ataan <ataan@student.42amman.com>          +#+  +:+       +#+        */
+/*   By: ataan <ataan@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/23 22:34:50 by ataan             #+#    #+#             */
-/*   Updated: 2024/12/23 22:43:18 by ataan            ###   ########.fr       */
+/*   Updated: 2024/12/24 18:14:48 by ataan            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,6 +16,7 @@ void	check_cmd(char *cmd)
 {
 	if (access(cmd, F_OK) == -1)
 	{
+		ft_printf("command not found: %s\n", cmd);
 		free(cmd);
 		exit(127);
 	}
@@ -38,15 +39,20 @@ void	cmd2(int pipe[], char *file, char *cmd)
 	outfile = open(file, O_WRONLY | O_CREAT | O_TRUNC, 0644);
 	if (outfile != -1)
 	{
+		cmd_path = ft_strjoin("/bin/", cmd);
+		check_cmd(cmd_path);
 		if (dup2(outfile, STDOUT_FILENO) == -1)
 			exit(EXIT_FAILURE);
 		close(outfile);
-		cmd_path = ft_strjoin("/bin/", cmd);
 		if (!cmd_path)
 			exit(EXIT_FAILURE);
-		char *args[] = {"grep", "sakjfna", NULL};
-		check_cmd(cmd_path);
+		char *args[] = {"tr", "p", "d", NULL};
 		execve(cmd_path, args, NULL);
+	}
+	else
+	{
+		ft_printf("%s: Permission denied\n", file);
+		exit(EXIT_FAILURE);
 	}
 }
 
@@ -68,10 +74,12 @@ void	cmd1(int pipe[], char *file, char *cmd)
 		cmd_path = ft_strjoin("/bin/", cmd);
 		if (!cmd_path)
 			exit(EXIT_FAILURE);
-		char *args[] = {"cat", "-e", NULL};
+		char *args[] = {"ls", "-lstra", NULL};
 		execve(cmd_path, args, NULL);
 		free(cmd_path);
 	}
+	else
+		perror(file);
 }
 
 void	check_args(int ac, char **av, t_child *child1, t_child *child2)
@@ -108,6 +116,9 @@ int	wait_on_children(t_child *child2)
 	}
 	return (child2->status);
 }
+/*
+fix string cmd empty on 1
+*/
 
 int	main(int ac, char **av)
 {
@@ -122,7 +133,10 @@ int	main(int ac, char **av)
 	if (child1.pid == -1)
 		exit(EXIT_FAILURE);
 	if (child1.pid == 0 && child1.execute_cmd)
+	{
 		cmd1(pipefd, av[1], av[2]);
+		close (0);
+	}
 	child2.pid = fork();
 	if (child2.pid == -1)
 		exit(EXIT_FAILURE);
