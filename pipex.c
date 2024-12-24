@@ -6,7 +6,7 @@
 /*   By: ataan <ataan@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/23 22:34:50 by ataan             #+#    #+#             */
-/*   Updated: 2024/12/24 18:14:48 by ataan            ###   ########.fr       */
+/*   Updated: 2024/12/24 19:01:04 by ataan            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -92,9 +92,15 @@ void	check_args(int ac, char **av, t_child *child1, t_child *child2)
 		exit(EXIT_FAILURE);
 	}
 	else if ((av[2][0] == '\0'))
+	{
+		ft_printf("Empty command\n");
 		child1->execute_cmd = 0;
+	}
 	else if ((av[3][0] == '\0'))
+	{
+		ft_printf("Empty command\n");
 		child2->execute_cmd = 0;
+	}
 }
 
 int	wait_on_children(t_child *child2)
@@ -126,9 +132,9 @@ int	main(int ac, char **av)
 	t_child	child1;
 	t_child	child2;
 
-	check_args(ac, av, &child1, &child2);
 	if (pipe(pipefd) == -1)
 		return (-1);
+	check_args(ac, av, &child1, &child2);
 	child1.pid = fork();
 	if (child1.pid == -1)
 		exit(EXIT_FAILURE);
