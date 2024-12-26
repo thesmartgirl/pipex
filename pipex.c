@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   pipex.c                                            :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ataan <ataan@student.42.fr>                +#+  +:+       +#+        */
+/*   By: ataan <ataan@student.42amman.com>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/23 22:34:50 by ataan             #+#    #+#             */
-/*   Updated: 2024/12/26 20:00:29 by ataan            ###   ########.fr       */
+/*   Updated: 2024/12/27 00:34:50 by ataan            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,19 +25,26 @@ void free_array(char **arr)
 	free(arr);
 }
 
+void clean_child(t_child *child)
+{
+	if(child->cmd != NULL)
+		free(child->cmd);
+	if(child->args != NULL)
+		free_array(child->args);
+}
+
 void clean_and_exit(int status, t_child *child)
 {
-	free(child->cmd);
-	free_array(child->args);
+	if(child->cmd != NULL)
+		free(child->cmd);
+	if(child->args != NULL)
+		free_array(child->args);
 	exit(status);
 }
 
-void	cmd2(int pipe[], char *file, t_child *child)
+void	cmd2(int pipe[], int outfile, t_child *child)
 {
-	int		outfile;
-
 	close(pipe[1]);
-	outfile = open(file, O_WRONLY | O_CREAT | O_TRUNC, 0644);
 	if (outfile != -1)
 	{
 		if (dup2(pipe[0], STDIN_FILENO) == -1)
@@ -51,12 +58,13 @@ void	cmd2(int pipe[], char *file, t_child *child)
 	}
 	else
 	{
-		ft_printf("%s: Permission denied\n", file);
+		ft_printf("%s: Permission denied\n", outfile);
+		close(pipe[0]);
 		clean_and_exit(EXIT_FAILURE, child);
 	}
 }
 
-void	cmd1(int pipe[], char *file, t_child *child)
+void	cmd1(int pipe[], char *file, t_child *child1)
 {
 	int		infile;
 
@@ -65,23 +73,26 @@ void	cmd1(int pipe[], char *file, t_child *child)
 	if (infile != -1)
 	{
 		if (dup2(pipe[1], STDOUT_FILENO) == -1)
-			clean_and_exit(EXIT_FAILURE, child);
+			clean_and_exit(EXIT_FAILURE, child1);
 		close(pipe[1]);
 		if (dup2(infile, STDIN_FILENO) == -1)
-			clean_and_exit(EXIT_FAILURE, child);
+			clean_and_exit(EXIT_FAILURE, child1);
 		close(infile);
-		execve(child->cmd, child->args, NULL);
-		clean_and_exit(EXIT_FAILURE, child);
+		execve(child1->cmd, child1->args, NULL);
+		clean_child(child1);
+		exit(EXIT_FAILURE);
 	}
 	else
 	{
 		perror(file);
-		clean_and_exit(EXIT_FAILURE, child);
+		clean_child(child1);
+		close(pipe[1]);
+		exit(EXIT_FAILURE);
 	}
 }
 
 /*
-	splits cmd from args 
+	splits cmd from args
 	sets child->cmd, child->args
 */
 void set_cmd_args(char *cmd, t_child *child)
@@ -96,14 +107,19 @@ void set_cmd_args(char *cmd, t_child *child)
 */
 int check_cmd(t_child *child)
 {
+	ft_printf("check cmd %s\n", child->cmd);
+	ft_printf("check cmd with args = %s\n", child->args[0]);
+	if(child->args[0] == NULL)
+	{
+		ft_printf("return 127 coz cmd empty");
+		return 127;
+	}
 	if (access(child->cmd, F_OK) == -1)
 	{
 		ft_printf("command not found: %s\n", child->cmd);
 		child->execute_cmd = 0;
 		if(child->last)
 			return(127);
-		else
-			return(EXIT_SUCCESS);
 	}
 	else if (access(child->cmd, X_OK) == -1)
 	{
@@ -111,8 +127,6 @@ int check_cmd(t_child *child)
 		child->execute_cmd = 0;
 		if(child->last)
 			return(126);
-		else
-			return(EXIT_SUCCESS);
 	}
 	child->execute_cmd = 1;
 	return (EXIT_SUCCESS);
@@ -135,10 +149,6 @@ void	check_args(int ac, char **av, t_child *child1, t_child *child2)
 		ft_printf("Empty command 2\n");
 		child2->execute_cmd = 0;
 	}
-	// if (set_cmd_args(av[2], child1) == EXIT_FAILURE || set_cmd_args(av[3], child2) == EXIT_FAILURE)
-	// 	return (EXIT_FAILURE);
-	// check_cmd(child1);
-	// return (check_cmd(child2));
 }
 
 int	wait_on_children(t_child *child2)
@@ -171,33 +181,29 @@ void init_child(t_child *child)
 	child->last = 0;
 	child->pid = -1;
 	child->execute_cmd = 0;
+	child->cmd = NULL;
+	child->args = NULL;
 }
-
-/*
-fix string cmd empty on 1
-*/
 
 int	main(int ac, char **av)
 {
 	int		pipefd[2];
 	t_child	child1;
 	t_child	child2;
+	int	status;
+	int outfile;
 
 	init_child(&child1);
 	init_child(&child2);
-	check_args(ac, av, &child1, &child2);
-	set_cmd_args(av[2], &child1);
-	set_cmd_args(av[3], &child2);
-	if(valid_args != EXIT_SUCCESS)
-	{
-		free(child1.cmd);
-		free_array(child1.args);
-		free(child2.cmd);
-		free_array(child2.args);
-		exit(valid_args);
-	}
+
 	if (pipe(pipefd) == -1)
 		return (-1);
+
+	check_args(ac, av, &child1, &child2);
+	set_cmd_args(av[2], &child1);
+	status = check_cmd(&child1);
+	if(status != EXIT_SUCCESS)
+		clean_child(&child1);
 	if(child1.execute_cmd)
 	{
 		child1.pid = fork();
@@ -206,19 +212,34 @@ int	main(int ac, char **av)
 		if (child1.pid == 0)
 			cmd1(pipefd, av[1], &child1);
 	}
+
+	outfile = open(av[4], O_WRONLY | O_CREAT | O_TRUNC, 0644);
+	set_cmd_args(av[3], &child2);
+	status = check_cmd(&child2);
+	ft_printf("status = %d\n", status);
+	if(status != EXIT_SUCCESS)
+	{
+		clean_child(&child1);
+		clean_child(&child2);
+		close(outfile);
+		close(pipefd[0]);
+		close(pipefd[1]);
+		exit(status);
+	}
 	if(child2.execute_cmd)
 	{
 		child2.pid = fork();
 		if (child2.pid == -1)
 			clean_and_exit(EXIT_FAILURE, &child2);
 		if (child2.pid == 0)
-			cmd2(pipefd, av[4], &child2);
+			cmd2(pipefd, outfile, &child2);
 	}
+
+	close(outfile);
 	close(pipefd[0]);
 	close(pipefd[1]);
-	free(child1.cmd);
-	free_array(child1.args);
-	free(child2.cmd);
-	free_array(child2.args);
+	clean_child(&child1);
+	clean_child(&child2);
+
 	return(wait_on_children(&child2));
 }
