@@ -6,7 +6,7 @@
 /*   By: ataan <ataan@student.42amman.com>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/23 22:34:50 by ataan             #+#    #+#             */
-/*   Updated: 2024/12/27 00:34:50 by ataan            ###   ########.fr       */
+/*   Updated: 2024/12/27 00:44:07 by ataan            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,9 +27,11 @@ void free_array(char **arr)
 
 void clean_child(t_child *child)
 {
-	if(child->cmd != NULL)
+	ft_printf("clean_child cmd = %s\n", child->cmd);
+	ft_printf("clean_child first arg = %s\n", child->args[0]);
+	if(child->cmd)
 		free(child->cmd);
-	if(child->args != NULL)
+	if(child->args)
 		free_array(child->args);
 }
 
@@ -219,7 +221,6 @@ int	main(int ac, char **av)
 	ft_printf("status = %d\n", status);
 	if(status != EXIT_SUCCESS)
 	{
-		clean_child(&child1);
 		clean_child(&child2);
 		close(outfile);
 		close(pipefd[0]);
@@ -238,8 +239,8 @@ int	main(int ac, char **av)
 	close(outfile);
 	close(pipefd[0]);
 	close(pipefd[1]);
-	clean_child(&child1);
-	clean_child(&child2);
+	// clean_child(&child1);
+	// clean_child(&child2);
 
 	return(wait_on_children(&child2));
 }
