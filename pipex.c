@@ -6,7 +6,7 @@
 /*   By: ataan <ataan@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/23 22:34:50 by ataan             #+#    #+#             */
-/*   Updated: 2024/12/26 17:55:31 by ataan            ###   ########.fr       */
+/*   Updated: 2024/12/26 20:00:29 by ataan            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -84,45 +84,41 @@ void	cmd1(int pipe[], char *file, t_child *child)
 	splits cmd from args 
 	sets child->cmd, child->args
 */
-set_cmd_args(char *cmd, t_child *child)
+void set_cmd_args(char *cmd, t_child *child)
 {
 	child->args = ft_split(cmd, ' ');
-	if(!child->args)
-		clean_and_exit(EXIT_FAILURE, child);
 	child->cmd = ft_strjoin("/bin/", child->args[0]);
-	if (!child->cmd)
-		clean_and_exit(EXIT_FAILURE, child);
 }
 
 /*
 	checks for path and permission
 	sets child->execute_cmd
 */
-int check_cmd(char *cmd, t_child *child)
+int check_cmd(t_child *child)
 {
 	if (access(child->cmd, F_OK) == -1)
 	{
 		ft_printf("command not found: %s\n", child->cmd);
 		child->execute_cmd = 0;
-		free(child->cmd);
-		free_array(child->args);
 		if(child->last)
 			return(127);
+		else
+			return(EXIT_SUCCESS);
 	}
 	else if (access(child->cmd, X_OK) == -1)
 	{
 		ft_printf("command not executable: %s\n", child->cmd);
 		child->execute_cmd = 0;
-		free(child->cmd);
-		free_array(child->args);
 		if(child->last)
 			return(126);
+		else
+			return(EXIT_SUCCESS);
 	}
 	child->execute_cmd = 1;
-	return (0);
+	return (EXIT_SUCCESS);
 }
 
-int	check_args(int ac, char **av, t_child *child1, t_child *child2)
+void	check_args(int ac, char **av, t_child *child1, t_child *child2)
 {
 	if (ac != 5)
 	{
@@ -139,10 +135,10 @@ int	check_args(int ac, char **av, t_child *child1, t_child *child2)
 		ft_printf("Empty command 2\n");
 		child2->execute_cmd = 0;
 	}
-	set_cmd_args(av[2], child1);
-	set_cmd_args(av[3], child2);
-	check_cmd(av[2], child1);
-	return (check_cmd(av[3], child2));
+	// if (set_cmd_args(av[2], child1) == EXIT_FAILURE || set_cmd_args(av[3], child2) == EXIT_FAILURE)
+	// 	return (EXIT_FAILURE);
+	// check_cmd(child1);
+	// return (check_cmd(child2));
 }
 
 int	wait_on_children(t_child *child2)
@@ -189,8 +185,17 @@ int	main(int ac, char **av)
 
 	init_child(&child1);
 	init_child(&child2);
-	if(!check_args(ac, av, &child1, &child2))
-		clean_and_exit();
+	check_args(ac, av, &child1, &child2);
+	set_cmd_args(av[2], &child1);
+	set_cmd_args(av[3], &child2);
+	if(valid_args != EXIT_SUCCESS)
+	{
+		free(child1.cmd);
+		free_array(child1.args);
+		free(child2.cmd);
+		free_array(child2.args);
+		exit(valid_args);
+	}
 	if (pipe(pipefd) == -1)
 		return (-1);
 	if(child1.execute_cmd)
