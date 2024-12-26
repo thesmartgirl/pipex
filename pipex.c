@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   pipex.c                                            :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ataan <ataan@student.42amman.com>          +#+  +:+       +#+        */
+/*   By: ataan <ataan@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/23 22:34:50 by ataan             #+#    #+#             */
-/*   Updated: 2024/12/25 15:48:27 by ataan            ###   ########.fr       */
+/*   Updated: 2024/12/26 17:55:31 by ataan            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -47,6 +47,7 @@ void	cmd2(int pipe[], char *file, t_child *child)
 			clean_and_exit(EXIT_FAILURE, child);
 		close(outfile);
 		execve(child->cmd, child->args, NULL);
+		clean_and_exit(EXIT_FAILURE, child);
 	}
 	else
 	{
@@ -70,18 +71,20 @@ void	cmd1(int pipe[], char *file, t_child *child)
 			clean_and_exit(EXIT_FAILURE, child);
 		close(infile);
 		execve(child->cmd, child->args, NULL);
-		free(child->cmd);
-		free_array(child->args);
+		clean_and_exit(EXIT_FAILURE, child);
 	}
 	else
+	{
 		perror(file);
+		clean_and_exit(EXIT_FAILURE, child);
+	}
 }
 
 /*
-	splits cmd from args and checks for path and permission
-	sets child->cmd, child->args, and child->execute_cmd
+	splits cmd from args 
+	sets child->cmd, child->args
 */
-void check_child_cmd(char *cmd, t_child *child)
+set_cmd_args(char *cmd, t_child *child)
 {
 	child->args = ft_split(cmd, ' ');
 	if(!child->args)
@@ -89,29 +92,38 @@ void check_child_cmd(char *cmd, t_child *child)
 	child->cmd = ft_strjoin("/bin/", child->args[0]);
 	if (!child->cmd)
 		clean_and_exit(EXIT_FAILURE, child);
-	if(child->execute_cmd)
-	{
-		if (access(child->cmd, F_OK) == -1)
-		{
-			ft_printf("command not found: %s\n", child->cmd);
-			child->execute_cmd = 0;
-			if(child->last)
-				clean_and_exit(127, child);
-		}
-		else if (access(child->cmd, X_OK) == -1)
-		{
-			ft_printf("command not executable: %s\n", child->cmd);
-			child->execute_cmd = 0;
-			if(child->last)
-				clean_and_exit(126, child);
-		}
-	}
 }
 
-void	check_args(int ac, char **av, t_child *child1, t_child *child2)
+/*
+	checks for path and permission
+	sets child->execute_cmd
+*/
+int check_cmd(char *cmd, t_child *child)
 {
-	child1->execute_cmd = 1;
-	child2->execute_cmd = 1;
+	if (access(child->cmd, F_OK) == -1)
+	{
+		ft_printf("command not found: %s\n", child->cmd);
+		child->execute_cmd = 0;
+		free(child->cmd);
+		free_array(child->args);
+		if(child->last)
+			return(127);
+	}
+	else if (access(child->cmd, X_OK) == -1)
+	{
+		ft_printf("command not executable: %s\n", child->cmd);
+		child->execute_cmd = 0;
+		free(child->cmd);
+		free_array(child->args);
+		if(child->last)
+			return(126);
+	}
+	child->execute_cmd = 1;
+	return (0);
+}
+
+int	check_args(int ac, char **av, t_child *child1, t_child *child2)
+{
 	if (ac != 5)
 	{
 		ft_printf("wrong number of arguments\n");
@@ -127,8 +139,10 @@ void	check_args(int ac, char **av, t_child *child1, t_child *child2)
 		ft_printf("Empty command 2\n");
 		child2->execute_cmd = 0;
 	}
-	check_child_cmd(av[2], child1);
-	check_child_cmd(av[3], child2);
+	set_cmd_args(av[2], child1);
+	set_cmd_args(av[3], child2);
+	check_cmd(av[2], child1);
+	return (check_cmd(av[3], child2));
 }
 
 int	wait_on_children(t_child *child2)
@@ -155,6 +169,14 @@ int	wait_on_children(t_child *child2)
 	else
 		return (127);
 }
+
+void init_child(t_child *child)
+{
+	child->last = 0;
+	child->pid = -1;
+	child->execute_cmd = 0;
+}
+
 /*
 fix string cmd empty on 1
 */
@@ -165,23 +187,19 @@ int	main(int ac, char **av)
 	t_child	child1;
 	t_child	child2;
 
-	child1.last = 0;
-	child2.last = 1;
-	child1.pid = -1;
-	child2.pid = -1;
+	init_child(&child1);
+	init_child(&child2);
+	if(!check_args(ac, av, &child1, &child2))
+		clean_and_exit();
 	if (pipe(pipefd) == -1)
 		return (-1);
-	check_args(ac, av, &child1, &child2);
 	if(child1.execute_cmd)
 	{
 		child1.pid = fork();
 		if (child1.pid == -1)
 			clean_and_exit(EXIT_FAILURE, &child1);
 		if (child1.pid == 0)
-		{
 			cmd1(pipefd, av[1], &child1);
-			clean_and_exit(0, &child1);
-		}
 	}
 	if(child2.execute_cmd)
 	{
