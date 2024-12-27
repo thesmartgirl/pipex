@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   pipex.h                                            :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ataan <ataan@student.42amman.com>          +#+  +:+       +#+        */
+/*   By: ataan <ataan@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/23 22:35:09 by ataan             #+#    #+#             */
-/*   Updated: 2024/12/25 14:28:52 by ataan            ###   ########.fr       */
+/*   Updated: 2024/12/27 19:52:56 by ataan            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,6 +27,7 @@ typedef struct s_child
 	bool	last;
 	char	*cmd;
 	char	**args;
+	int		file_valid;
 }			t_child;
 
 #endif

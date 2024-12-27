@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   pipex.c                                            :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ataan <ataan@student.42amman.com>          +#+  +:+       +#+        */
+/*   By: ataan <ataan@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/23 22:34:50 by ataan             #+#    #+#             */
-/*   Updated: 2024/12/27 00:44:07 by ataan            ###   ########.fr       */
+/*   Updated: 2024/12/27 20:52:34 by ataan            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,8 +27,6 @@ void free_array(char **arr)
 
 void clean_child(t_child *child)
 {
-	ft_printf("clean_child cmd = %s\n", child->cmd);
-	ft_printf("clean_child first arg = %s\n", child->args[0]);
 	if(child->cmd)
 		free(child->cmd);
 	if(child->args)
@@ -60,12 +58,13 @@ void	cmd2(int pipe[], int outfile, t_child *child)
 	}
 	else
 	{
-		ft_printf("%s: Permission denied\n", outfile);
+		ft_printf("%d: Permission denied\n", outfile);
 		close(pipe[0]);
 		clean_and_exit(EXIT_FAILURE, child);
 	}
 }
 
+/* if infile does not exist command should run anyway (with/without dup??) */
 void	cmd1(int pipe[], char *file, t_child *child1)
 {
 	int		infile;
@@ -109,11 +108,8 @@ void set_cmd_args(char *cmd, t_child *child)
 */
 int check_cmd(t_child *child)
 {
-	ft_printf("check cmd %s\n", child->cmd);
-	ft_printf("check cmd with args = %s\n", child->args[0]);
 	if(child->args[0] == NULL)
 	{
-		ft_printf("return 127 coz cmd empty");
 		return 127;
 	}
 	if (access(child->cmd, F_OK) == -1)
@@ -214,11 +210,13 @@ int	main(int ac, char **av)
 		if (child1.pid == 0)
 			cmd1(pipefd, av[1], &child1);
 	}
+	clean_child(&child1);
 
 	outfile = open(av[4], O_WRONLY | O_CREAT | O_TRUNC, 0644);
+	ft_printf("outfile = %d\n", outfile);
+	/*when we dont have write permission, exit status should be 1*/
 	set_cmd_args(av[3], &child2);
 	status = check_cmd(&child2);
-	ft_printf("status = %d\n", status);
 	if(status != EXIT_SUCCESS)
 	{
 		clean_child(&child2);
@@ -235,12 +233,11 @@ int	main(int ac, char **av)
 		if (child2.pid == 0)
 			cmd2(pipefd, outfile, &child2);
 	}
+	clean_child(&child2);
 
-	close(outfile);
+	if(outfile != -1)
+		close(outfile);
 	close(pipefd[0]);
 	close(pipefd[1]);
-	// clean_child(&child1);
-	// clean_child(&child2);
-
 	return(wait_on_children(&child2));
 }
