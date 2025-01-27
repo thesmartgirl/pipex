@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   utils.c                                            :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ataan <ataan@student.42amman.com>          +#+  +:+       +#+        */
+/*   By: ataan <ataan@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/29 22:50:12 by ataan             #+#    #+#             */
-/*   Updated: 2024/12/29 23:01:20 by ataan            ###   ########.fr       */
+/*   Updated: 2025/01/27 19:34:42 by ataan            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -73,7 +73,7 @@ int	check_cmd(t_child *child)
 		}
 		else if (access(child->cmd, X_OK) == -1)
 		{
-			ft_printf("command not executable: %s\n", child->cmd);
+			ft_printf("permission denied: %s\n", child->cmd);
 			child->execute_cmd = 0;
 			if (child->last)
 				return (126);

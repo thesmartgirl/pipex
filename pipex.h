@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   pipex.h                                            :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ataan <ataan@student.42amman.com>          +#+  +:+       +#+        */
+/*   By: ataan <ataan@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/23 22:35:09 by ataan             #+#    #+#             */
-/*   Updated: 2024/12/29 22:49:05 by ataan            ###   ########.fr       */
+/*   Updated: 2025/01/25 19:07:58 by ataan            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,6 +14,7 @@
 # define PIPEX_H
 
 # include "./libft/libft.h"
+# include <errno.h>
 # include <fcntl.h>
 # include <stdbool.h>
 # include <stdio.h>

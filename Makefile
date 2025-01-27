@@ -1,9 +1,9 @@
 CC				= cc
-RM				= rm -rf *.o ./*/*.o
+RM				= rm -rf 
 CFLAGS 			= -Wall -Werror -Wextra
-LIB 			= -L./mlx -lmlx -lXext -lX11 -L./libft -lft
+LIB 			= -L./libft -lft
 
-SRC 			= 
+SRC 			= children.c pipex.c utils.c
 OBJ 			= $(SRC:.c=.o)
 
 LIBFT_DIR 		= ./libft
@@ -13,21 +13,21 @@ NAME			= pipex
 
 all: $(NAME)
 
-$(NAME): $(OBJ)
-	$(MAKE) -C $(LIBFT_DIR)
+$(NAME): $(OBJ) libft
 	$(CC) $(OBJ) $(LIB) -o$(NAME)
 
-$(LIBFT):
-	$(MAKE) $(LIBFT_DIR)
+libft:
+	$(MAKE) -C $(LIBFT_DIR)
 
 all:			$(NAME)
 
 clean:
-				$(RM) $(OBJS) $(BONUS_OBJS)
+				$(RM) $(OBJ) 
+				$(MAKE) clean -C $(LIBFT_DIR)
 
 fclean:			clean
-				$(RM) $(NAME)
+				$(RM) $(NAME) $(LIBFT)
 
 re:				fclean $(NAME)
 
-.PHONY:			all clean fclean re 
+.PHONY:			libft all clean fclean re 

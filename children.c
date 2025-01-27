@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   children.c                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ataan <ataan@student.42amman.com>          +#+  +:+       +#+        */
+/*   By: ataan <ataan@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/29 22:50:07 by ataan             #+#    #+#             */
-/*   Updated: 2024/12/29 23:00:52 by ataan            ###   ########.fr       */
+/*   Updated: 2025/01/27 19:33:25 by ataan            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,7 +16,7 @@ void	init_child(t_child *child)
 {
 	child->last = 0;
 	child->pid = -1;
-	child->execute_cmd = 0;
+	child->execute_cmd = 1;
 	child->cmd = NULL;
 	child->args = NULL;
 }
@@ -29,7 +29,7 @@ void	manage_child1(char **av, t_child *child1, int *pipefd)
 	status = check_cmd(child1);
 	if (status != EXIT_SUCCESS)
 		clean_child(child1);
-	if (child1->execute_cmd)
+	if (child1->execute_cmd != 0)
 	{
 		child1->pid = fork();
 		if (child1->pid == -1)
@@ -90,7 +90,6 @@ void	cmd2(int pipe[], int outfile, t_child *child)
 	}
 }
 
-/* if infile does not exist command should run anyway (with/without dup??) */
 void	cmd1(int pipe[], char *file, t_child *child1)
 {
 	int	infile;
@@ -108,6 +107,12 @@ void	cmd1(int pipe[], char *file, t_child *child1)
 			clean_and_exit(EXIT_FAILURE, child1);
 		close(infile);
 	}
-	execve(child1->cmd, child1->args, NULL);
-	clean_and_exit(EXIT_FAILURE, child1);
+	if (execve(child1->cmd, child1->args, NULL) == -1)
+	{
+		clean_child(child1);
+		if (errno == ENOENT)
+			exit(127);
+		if (errno == EACCES)
+			exit(126);
+	}
 }
