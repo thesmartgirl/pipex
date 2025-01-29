@@ -6,7 +6,7 @@
 /*   By: ataan <ataan@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/29 22:50:07 by ataan             #+#    #+#             */
-/*   Updated: 2025/01/27 19:33:25 by ataan            ###   ########.fr       */
+/*   Updated: 2025/01/29 19:45:33 by ataan            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,18 +17,20 @@ void	init_child(t_child *child)
 	child->last = 0;
 	child->pid = -1;
 	child->execute_cmd = 1;
+	child->status = 0;
 	child->cmd = NULL;
 	child->args = NULL;
 }
 
 void	manage_child1(char **av, t_child *child1, int *pipefd)
 {
-	int	status;
-
 	set_cmd_args(av[2], child1);
-	status = check_cmd(child1);
-	if (status != EXIT_SUCCESS)
+	child1->status = check_cmd(child1, av[1]);
+	if (child1->status  != EXIT_SUCCESS)
+	{
 		clean_child(child1);
+		return;
+	}
 	if (child1->execute_cmd != 0)
 	{
 		child1->pid = fork();
@@ -43,18 +45,16 @@ void	manage_child1(char **av, t_child *child1, int *pipefd)
 void	manage_child2(char **av, t_child *child2, int *pipefd)
 {
 	int	outfile;
-	int	status;
 
 	outfile = open(av[4], O_WRONLY | O_CREAT | O_TRUNC, 0644);
 	set_cmd_args(av[3], child2);
-	status = check_cmd(child2);
-	if (status != EXIT_SUCCESS)
+	child2->status = check_cmd(child2, av[4]);
+	if (child2->status != EXIT_SUCCESS)
 	{
 		clean_child(child2);
-		close(outfile);
-		close(pipefd[0]);
-		close(pipefd[1]);
-		exit(status);
+		if (outfile != -1)
+			close(outfile);
+		return;
 	}
 	if (child2->execute_cmd)
 	{

@@ -6,7 +6,7 @@
 /*   By: ataan <ataan@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/23 22:35:09 by ataan             #+#    #+#             */
-/*   Updated: 2025/01/25 19:07:58 by ataan            ###   ########.fr       */
+/*   Updated: 2025/01/29 19:44:43 by ataan            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,7 +34,7 @@ void		free_array(char **arr);
 void		clean_child(t_child *child);
 void		clean_and_exit(int status, t_child *child);
 void		set_cmd_args(char *cmd, t_child *child);
-int			check_cmd(t_child *child);
+int			check_cmd(t_child *child, char *file);
 
 void		init_child(t_child *child);
 void		manage_child1(char **av, t_child *child1, int *pipefd);

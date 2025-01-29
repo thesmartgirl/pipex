@@ -6,7 +6,7 @@
 /*   By: ataan <ataan@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/29 22:50:12 by ataan             #+#    #+#             */
-/*   Updated: 2025/01/27 19:34:42 by ataan            ###   ########.fr       */
+/*   Updated: 2025/01/29 19:44:15 by ataan            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -56,11 +56,11 @@ void	set_cmd_args(char *cmd, t_child *child)
 	checks for path and permission
 	sets child->execute_cmd
 */
-int	check_cmd(t_child *child)
+int	check_cmd(t_child *child, char *file)
 {
 	if (child->args != NULL)
 	{
-		if (child->args[0] == NULL)
+		if (child->args[0] == NULL && file[0] != '\0')
 		{
 			return (127);
 		}
@@ -78,7 +78,8 @@ int	check_cmd(t_child *child)
 			if (child->last)
 				return (126);
 		}
-		child->execute_cmd = 1;
 	}
+	else
+		child->execute_cmd = 0;
 	return (EXIT_SUCCESS);
 }
