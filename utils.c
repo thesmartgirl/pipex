@@ -6,7 +6,7 @@
 /*   By: ataan <ataan@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/29 22:50:12 by ataan             #+#    #+#             */
-/*   Updated: 2025/01/29 19:44:15 by ataan            ###   ########.fr       */
+/*   Updated: 2025/01/30 17:12:10 by ataan            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -61,9 +61,7 @@ int	check_cmd(t_child *child, char *file)
 	if (child->args != NULL)
 	{
 		if (child->args[0] == NULL && file[0] != '\0')
-		{
 			return (127);
-		}
 		if (access(child->cmd, F_OK) == -1)
 		{
 			ft_printf("command not found: %s\n", child->cmd);

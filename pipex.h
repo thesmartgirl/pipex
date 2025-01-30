@@ -6,7 +6,7 @@
 /*   By: ataan <ataan@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/23 22:35:09 by ataan             #+#    #+#             */
-/*   Updated: 2025/01/29 19:44:43 by ataan            ###   ########.fr       */
+/*   Updated: 2025/01/30 17:06:53 by ataan            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,6 +24,7 @@ typedef struct s_child
 {
 	int		pid;
 	int		status;
+	bool	file_err;
 	bool	execute_cmd;
 	bool	last;
 	char	*cmd;

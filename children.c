@@ -6,7 +6,7 @@
 /*   By: ataan <ataan@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/29 22:50:07 by ataan             #+#    #+#             */
-/*   Updated: 2025/01/29 19:45:33 by ataan            ###   ########.fr       */
+/*   Updated: 2025/01/30 20:03:52 by ataan            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,6 +18,7 @@ void	init_child(t_child *child)
 	child->pid = -1;
 	child->execute_cmd = 1;
 	child->status = 0;
+	child->file_err = 0;
 	child->cmd = NULL;
 	child->args = NULL;
 }
@@ -26,10 +27,10 @@ void	manage_child1(char **av, t_child *child1, int *pipefd)
 {
 	set_cmd_args(av[2], child1);
 	child1->status = check_cmd(child1, av[1]);
-	if (child1->status  != EXIT_SUCCESS)
+	if (child1->status != EXIT_SUCCESS)
 	{
 		clean_child(child1);
-		return;
+		return ;
 	}
 	if (child1->execute_cmd != 0)
 	{
@@ -54,7 +55,7 @@ void	manage_child2(char **av, t_child *child2, int *pipefd)
 		clean_child(child2);
 		if (outfile != -1)
 			close(outfile);
-		return;
+		return ;
 	}
 	if (child2->execute_cmd)
 	{
@@ -108,11 +109,5 @@ void	cmd1(int pipe[], char *file, t_child *child1)
 		close(infile);
 	}
 	if (execve(child1->cmd, child1->args, NULL) == -1)
-	{
 		clean_child(child1);
-		if (errno == ENOENT)
-			exit(127);
-		if (errno == EACCES)
-			exit(126);
-	}
 }

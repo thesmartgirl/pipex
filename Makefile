@@ -1,6 +1,6 @@
 CC				= cc
 RM				= rm -rf 
-CFLAGS 			= -Wall -Werror -Wextra
+CFLAGS 			= -Wall -Werror -Wextra -g
 LIB 			= -L./libft -lft
 
 SRC 			= children.c pipex.c utils.c
